@@ -110,75 +110,75 @@
 {
     UIImage *placeholderImage = (placeholderImagePath != nil) ? [self loadLocalImage:placeholderImagePath] : nil;
     UIImage *brokenLinkImage = (brokenLinkImagePath != nil) ? [self loadLocalImage:brokenLinkImagePath] : nil;
-    
+
     if ([args isKindOfClass:[NSNull class]])
         return;
-    
+
     [imageView sd_cancelCurrentImageFetch];
-    
+
     if ([args isKindOfClass:[NSString class]]) {
         NSURL *imageUrl = [NSURL URLWithString:[TiUtils stringValue:args]];
-        
+
         if (loadingIndicator) {
             activityIndicator.hidden = NO;
-            
+
             [activityIndicator startAnimating];
         }
-        
+
         if ([imageUrl.scheme isEqualToString:@"http"] || [imageUrl.scheme isEqualToString:@"https"]) {
             NSString *userAgent = [[TiApp app] userAgent];
-            
+
             [[SDWebImageDownloader sharedDownloader] setValue:userAgent forHTTPHeaderField:@"User-Agent"];
-            
+
             //Extending HTTP header with custom values
             if (requestHeader != nil)
                 for (id key in requestHeader)
                     [[SDWebImageDownloader sharedDownloader] setValue:[requestHeader valueForKey:key] forHTTPHeaderField:key];
-            
+
             [imageView sd_setImageWithURL:imageUrl
                          placeholderImage:placeholderImage
                                   options: handleCookies
                                 completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *url) {
                                     autoWidth = image.size.width;
                                     autoHeight = image.size.height;
-                                    
+
                                     NSMutableDictionary *event = [[NSMutableDictionary alloc] init];
-                                    
+
                                     [event setValue:[imageUrl absoluteString] forKey:@"image"];
                                     [event setValue:[[NSNumber alloc] initWithFloat:image.size.width]  forKey:@"width"];
                                     [event setValue:[[NSNumber alloc] initWithFloat:image.size.height] forKey:@"height"];
-                                    
+
                                     if (error != nil) {
                                         if (brokenLinkImage != nil)
                                             imageView.image = brokenLinkImage;
-                                        
+
                                         [event setValue:[error localizedDescription] forKey:@"reason"];
-                                        
+
                                         if ([self.proxy _hasListeners:@"error"])
                                             [self.proxy fireEvent:@"error" withObject:event];
                                     } else {
                                         if ([self.proxy _hasListeners:@"load"])
                                             [self.proxy fireEvent:@"load" withObject:event];
                                     }
-                                    
+
                                     if ([activityIndicator isAnimating])
                                         [activityIndicator stopAnimating];
-                                    
+
                                     [(TiViewProxy*)[self proxy] contentsWillChange];
-                                    
+
                                     [self fadeImage:cacheType];
                                 }
              ];
         } else {
             if ([TiUtils stringValue:args].length > 0)
                 imageView.image = [self loadLocalImage:[TiUtils stringValue:args]];
-            
+
             if (loadingIndicator)
                 [activityIndicator stopAnimating];
         }
     } else if ([args isKindOfClass:[TiBlob class]]) {
         TiBlob *blob = (TiBlob*)args;
-        
+
         imageView.image = [blob image];
     }
 
@@ -251,8 +251,7 @@
 }
 
 -(void)setImage_:(id)args {
-    
-    [[SDImageCache sharedImageCache] removeImageForKey:imageObject fromDisk:NO withCompletion:nil];
+
     imageObject = args;
     if(configurationComplete){
         [self displayImage:imageObject];
@@ -296,13 +295,13 @@
     if(useCookies){
         handleCookies = SDWebImageHandleCookies;
     }
-    
+
 }
 
 -(void)setTimeout_:(id)args {
     NSTimeInterval timeout = [TiUtils doubleValue:args def:5000] / 1000;
     [[SDWebImageDownloader sharedDownloader] setDownloadTimeout:timeout];
-    
+
 }
 
 #pragma mark utility methodds
