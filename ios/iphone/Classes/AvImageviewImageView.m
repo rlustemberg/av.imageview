@@ -25,7 +25,6 @@
 
 -(void)initializeState {
     [super initializeState];
-
     if (self) {
         imageView = [[FLAnimatedImageView alloc] initWithFrame:[self bounds]];
         imageView.clipsToBounds = YES;
@@ -253,11 +252,12 @@
 
 -(void)setImage_:(id)args {
     
+    [[SDImageCache sharedImageCache] removeImageForKey:imageObject fromDisk:NO withCompletion:nil];
     imageObject = args;
     if(configurationComplete){
         [self displayImage:imageObject];
     }
-   }
+}
 
 -(void)setDefaultImage_:(id)args {
     placeholderImagePath = [TiUtils stringValue:args];
